@@ -1,0 +1,25 @@
+server:
+  port: 8080
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/booklibre
+    username: booklibre
+    password: booklibre
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    open-in-view: false
+    show-sql: true
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  data:
+    mongodb:
+      # Desarrollo local: conectar al Mongo local (puerto 27017) con usuario autenticado
+      # Para levantar los servicios de base de datos: docker compose up -d redis postgres mongo
+      uri: mongodb://booklibre_app:booklibre_app_secret@localhost:27017/booklibreMongo?authSource=booklibreMongo&wtimeoutMS=5000&socketTimeoutMS=5000&connectTimeoutMS=5000
+      database: booklibreMongo
+    redis:
+      host: localhost
+      port: 6379

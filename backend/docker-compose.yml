@@ -1,0 +1,129 @@
+services:
+
+  # -----------------------------------------------------------------------------
+  # Redis - Persiste top 10 libros clickeados
+  # -----------------------------------------------------------------------------
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    networks:
+      - booklibre-net
+
+  redisinsight:
+    image: redis/redisinsight:latest
+    ports:
+      - "5540:5540"
+    depends_on:
+      - redis
+    networks:
+      - booklibre-net
+  # -----------------------------------------------------------------------------
+  # PostgreSQL - Persiste usuarios, reservas, historial de puntajes
+  # -----------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: booklibre-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: booklibre
+      POSTGRES_USER: booklibre
+      POSTGRES_PASSWORD: booklibre
+    ports:
+      - "5432:5432"
+    volumes:
+      - booklibre_postgres_data:/var/lib/postgresql/data
+    networks:
+      - booklibre-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U booklibre -d booklibre"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # -----------------------------------------------------------------------------
+  # MongoDB - Instancia única sin Sharding
+  # -----------------------------------------------------------------------------
+  mongo:
+    image: mongo:7
+    container_name: booklibre-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=booklibreMongo
+    volumes:
+      - booklibre_mongo_data:/data/db
+      - ./mongo-init/init-single.js:/docker-entrypoint-initdb.d/init-single.js:ro
+    networks:
+      - booklibre-net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping').ok", "--quiet"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # -----------------------------------------------------------------------------
+  # Backend Spring Boot
+  # -----------------------------------------------------------------------------
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: booklibre-backend
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - MONGODB_URI=mongodb://booklibre_app:booklibre_app_secret@mongo:27017/booklibreMongo?authSource=booklibreMongo&wtimeoutMS=5000&socketTimeoutMS=5000&connectTimeoutMS=5000
+      - JAVA_OPTS=-Xmx256m -Xms128m
+    ports:
+      - "8080:8080"
+    networks:
+      - booklibre-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/api/libros/home?usuarioId=1 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  # -----------------------------------------------------------------------------
+  # Frontend React + Vite
+  # -----------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: booklibre-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    volumes:
+      - ../frontend:/app
+      - booklibre_frontend_node_modules:/app/node_modules
+    environment:
+      - VITE_BACKEND_URL=http://backend:8080
+      - CI=true
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - booklibre-net
+
+networks:
+  booklibre-net:
+    driver: bridge
+
+volumes:
+  booklibre_postgres_data:
+  booklibre_mongo_data:
+  booklibre_frontend_node_modules:

@@ -1,0 +1,108 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap");
+@import "tailwindcss";
+
+@theme {
+  /* ── Marca ──────────────────────────────────────────── */
+  --color-primary-light: #f7bd48;
+  --color-primary: #ba880f;
+  --color-primary-dark: #9a6e0a;
+
+  /* ── Tipografía / superficie (modo oscuro por defecto) ─ */
+  --color-secondary-light: #d3c4af;
+  --color-secondary: #c8c8b0;
+  --color-secondary-dark: #ede0dc;
+
+  --color-background: #181210;
+  --color-surface: #251e1c;
+  --color-surface-high: #2f2826;
+  --color-surface-highest: #3b3331;
+
+  --color-accent: #4f4535;
+
+  /* ── Semánticos ──────────────────────────────────────── */
+  --color-on-surface: #ede0dc;
+  --color-on-surface-variant: #d3c4af;
+  --color-outline: #9c8f7b;
+  --color-outline-variant: #4f4535;
+
+  /* ── Estados ─────────────────────────────────────────── */
+  --color-success: #10b981;
+  --color-success-bg: #064e3b;
+  --color-danger: #ef4444;
+  --color-danger-bg: #450a0a;
+  --color-warning: #f59e0b;
+  --color-warning-bg: #451a03;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TEMA CLARO — sobrescribe las variables CSS al cambiar tema
+   ═══════════════════════════════════════════════════════════ */
+:root[data-theme="light"] {
+  --color-background: #f5ede0;
+  --color-surface: #ffffff;
+  --color-surface-high: #f0e8d8;
+  --color-surface-highest: #e8ddc8;
+
+  --color-secondary-light: #8b7560;
+  --color-secondary: #6b5c45;
+  --color-secondary-dark: #2d2217;
+
+  --color-accent: #d4c5a8;
+
+  --color-on-surface: #2d2217;
+  --color-on-surface-variant: #6b5c45;
+  --color-outline: #9c8f7b;
+  --color-outline-variant: #d4c5a8;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ANIMACIONES
+   ═══════════════════════════════════════════════════════════ */
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(0.95) translateY(8px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0);   }
+}
+@keyframes modal-out {
+  from { opacity: 1; transform: scale(1)    translateY(0);   }
+  to   { opacity: 0; transform: scale(0.95) translateY(8px); }
+}
+@keyframes backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
+
+.modal-enter    { animation: modal-in    0.20s cubic-bezier(0.16,1,0.3,1) forwards; }
+.backdrop-enter { animation: backdrop-in 0.20s ease                       forwards; }
+.modal-out      { animation: modal-out   0.18s cubic-bezier(0.16,1,0.3,1) forwards; }
+.fade-up        { animation: fade-up     0.35s cubic-bezier(0.16,1,0.3,1) both;     }
+
+/* ═══════════════════════════════════════════════════════════
+   BASE
+   ═══════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: "Manrope", sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-on-surface);
+  transition: background-color 0.3s ease, color 0.2s ease;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar sutil */
+::-webkit-scrollbar       { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-accent); border-radius: 3px; }
+
+/* Inputs de fecha — esquema de color */
+input[type="date"] { color-scheme: inherit; }
