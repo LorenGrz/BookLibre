@@ -14,7 +14,7 @@ import { RequireTipoUsuario } from "./components/auth/RequireTipoUsuario"
 
 export function AppRouter() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <Routes>
         <Route path="login" element={<AuthPage key="login" mode="login" />} />
         <Route path="register" element={<AuthPage key="register" mode="register" />} />
