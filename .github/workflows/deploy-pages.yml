@@ -38,6 +38,8 @@ jobs:
         env:
           VITE_API_URL: https://booklibre-api-1v9t.onrender.com/api
 
+      - run: cp frontend/dist/index.html frontend/dist/404.html
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ./frontend/dist
