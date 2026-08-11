@@ -30,3 +30,7 @@ spring:
       url: ${REDIS_URL}
   main:
     allow-bean-definition-overriding: true
+
+cookie:
+  same-site: "None"
+  secure: true

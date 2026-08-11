@@ -7,6 +7,7 @@ import ar.edu.unsam.phm.services.AuthService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import jakarta.validation.Valid
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseCookie
 
@@ -18,7 +19,11 @@ data class OAuth2TokenResponse(
 
 @RestController
 @RequestMapping("/api")
-class AuthController (private val authService: AuthService) {
+class AuthController(
+    private val authService: AuthService,
+    @Value("\${cookie.same-site:Strict}") private val cookieSameSite: String,
+    @Value("\${cookie.secure:false}") private val cookieSecure: Boolean,
+) {
     @PostMapping("/login")
     fun login(@Valid @RequestBody request: LoginRequest): ResponseEntity<AuthResponseUsuario> {
         val (responseBody, tokens) = authService.login(request)
@@ -57,10 +62,10 @@ class AuthController (private val authService: AuthService) {
     private fun createCookie(name: String, value: String, maxAge: Long): ResponseCookie {
         return ResponseCookie.from(name, value)
             .httpOnly(true)
-            // .secure(true) // Descomentar en producción (requiere HTTPS)
+            .secure(cookieSecure)
             .path("/")
             .maxAge(maxAge)
-            .sameSite("Strict")
+            .sameSite(cookieSameSite)
             .build()
     }
 
