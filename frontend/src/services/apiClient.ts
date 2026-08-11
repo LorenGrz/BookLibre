@@ -33,7 +33,7 @@ apiClient.interceptors.response.use(
       } catch (refreshError) {
         // Si el refresh falla, desloguear
         tokenService.clearAll()
-        window.location.href = '/login'
+        window.location.href = `${import.meta.env.BASE_URL}login`
         return Promise.reject(refreshError)
       }
     } else if (error.response?.status === HttpStatusCodes.FORBIDDEN) {
