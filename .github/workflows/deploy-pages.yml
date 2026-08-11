@@ -35,6 +35,8 @@ jobs:
 
       - run: pnpm exec vite build --base=/BookLibre/
         working-directory: frontend
+        env:
+          VITE_API_URL: https://booklibre-api.onrender.com/api
 
       - uses: actions/upload-pages-artifact@v3
         with:

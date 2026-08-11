@@ -76,18 +76,3 @@ services:
       - key: JWT_SECRET
         sync: false
 
-  - type: web
-    runtime: static
-    name: booklibre-web
-    repo: https://github.com/LorenGrz/BookLibre
-    branch: feat/deploy
-    rootDir: frontend
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm build
-    staticPublishPath: ./dist
-    envVars:
-      - key: VITE_API_URL
-        value: https://booklibre-api.onrender.com/api
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
