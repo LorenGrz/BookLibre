@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import java.time.Instant
 
@@ -54,6 +55,20 @@ class AuthExceptionHandler {
         val errorMessage = error.bindingResult.fieldErrors.joinToString(", ") { it.defaultMessage ?: "Error de validación" }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
             ErrorResponse(status = 400, error = "Bad Request", message = errorMessage, path = request.requestURI)
+        )
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException::class)
+    fun handleDataIntegrity(error: DataIntegrityViolationException, request: HttpServletRequest) =
+        ResponseEntity.status(HttpStatus.CONFLICT).body(
+            ErrorResponse(status = 409, error = "Conflict", message = "El recurso ya existe o viola una restricción única", path = request.requestURI)
+        )
+
+    @ExceptionHandler(Exception::class)
+    fun handleGeneric(error: Exception, request: HttpServletRequest): ResponseEntity<ErrorResponse> {
+        error.printStackTrace()
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+            ErrorResponse(status = 500, error = "Internal Server Error", message = error.message ?: "Error interno del servidor", path = request.requestURI)
         )
     }
 }
