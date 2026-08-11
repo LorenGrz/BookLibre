@@ -128,3 +128,30 @@ Si prefieres no configurar Java o Node.js de forma local, puedes levantar la apl
    docker compose up --build
    ```
 El backend estará en `http://localhost:8080` y el frontend en `http://localhost:5173`.
+
+---
+
+## Producción (Deploy)
+
+BookLibre está desplegado en dos servicios gratuitos:
+
+| Componente | Servicio | URL |
+|---|---|---|
+| Frontend | GitHub Pages | https://lorengrz.github.io/BookLibre/ |
+| API | Render (Web Service) | https://booklibre-api-1v9t.onrender.com |
+| PostgreSQL | Render Postgres | interno (`booklibre-db`) |
+| Redis / KV | Render KV | interno (`redis://red-...`) |
+| MongoDB | MongoDB Atlas M0 | cluster `booklibre` |
+
+### Rama de deploy
+
+La rama `feat/deploy` dispara el deploy tanto del frontend como del backend:
+
+- **Frontend:** GitHub Actions (`.github/workflows/deploy-pages.yml`) — build con `pnpm exec vite build --base=/BookLibre/`, copia `index.html` → `404.html` para SPA routing, y publica en GitHub Pages.
+- **Backend:** Render detecta push a `feat/deploy` y hace re-deploy automático del Web Service.
+
+### Decisiones de producción
+
+- Las cookies JWT usan `SameSite=None; Secure` en producción para funcionar entre dominios distintos (GitHub Pages ↔ Render). Configurable vía `cookie.same-site` y `cookie.secure` en `application-prod.yml`.
+- El perfil `prod` de Spring Boot se activa con la variable de entorno `SPRING_PROFILES_ACTIVE=prod` en Render.
+- Los 12 env vars del servicio Render se gestionan vía la API de Render (`PUT /v1/services/{id}/env-vars` reemplaza **todos** los vars — siempre enviar la lista completa).
