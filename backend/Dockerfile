@@ -27,4 +27,8 @@ COPY --from=build /app/build/libs/*.jar app.jar
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", \
+  "-XX:TieredStopAtLevel=1", \
+  "-Dspring.jmx.enabled=false", \
+  "-Djava.security.egd=file:/dev/./urandom", \
+  "-jar", "app.jar"]
