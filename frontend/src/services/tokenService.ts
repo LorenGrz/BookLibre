@@ -2,6 +2,7 @@ const ID_USUARIO_KEY = 'idUsuario'
 const NOMBRE_USUARIO_KEY = 'nombreUsuario'
 const TIPO_USUARIO_KEY = 'tipoUsuario'
 const ES_ADMIN_KEY = 'esAdmin'
+const ACCESS_TOKEN_KEY = 'accessToken'
 
 export const tokenService = {
 
@@ -42,10 +43,19 @@ export const tokenService = {
     return tokenService.getIdUsuario() !== null
   },
 
+  getAccessToken(): string | null {
+    return localStorage.getItem(ACCESS_TOKEN_KEY)
+  },
+
+  setAccessToken(token: string): void {
+    localStorage.setItem(ACCESS_TOKEN_KEY, token)
+  },
+
   clearAll(): void {
     localStorage.removeItem(ID_USUARIO_KEY)
     localStorage.removeItem(NOMBRE_USUARIO_KEY)
     localStorage.removeItem(TIPO_USUARIO_KEY)
     localStorage.removeItem(ES_ADMIN_KEY)
+    localStorage.removeItem(ACCESS_TOKEN_KEY)
   },
 }

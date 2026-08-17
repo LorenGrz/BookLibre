@@ -30,6 +30,7 @@ data class AuthResponseUsuario(
     val success: Boolean,
     val message: String? = null,
     val usuario: UsuarioResponse? = null,
+    val accessToken: String? = null,
 )
 
 data class AuthTokens(

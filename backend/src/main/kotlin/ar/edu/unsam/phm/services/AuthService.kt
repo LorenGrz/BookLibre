@@ -38,7 +38,7 @@ class AuthService(
         val refreshToken = jwtTokenUtils.generateRefreshToken(email)
 
         return Pair(
-            AuthResponseUsuario(true, "Login exitoso", usuario.toResponse()),
+            AuthResponseUsuario(true, "Login exitoso", usuario.toResponse(), accessToken),
             AuthTokens(accessToken, refreshToken)
         )
     }
@@ -58,7 +58,7 @@ class AuthService(
         val refreshToken = jwtTokenUtils.generateRefreshToken(email)
         
         return Pair(
-            AuthResponseUsuario(true, "Registro exitoso", guardado.toResponse()),
+            AuthResponseUsuario(true, "Registro exitoso", guardado.toResponse(), accessToken),
             AuthTokens(accessToken, refreshToken)
         )
     }

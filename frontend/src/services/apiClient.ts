@@ -4,12 +4,17 @@ import { toast } from 'react-toastify'
 import { HttpStatusCodes } from '../constants/http'
 import { tokenService } from './tokenService'
 
-export const apiClient = axios.create({ 
+export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true // Permite el envío y recepción de cookies HttpOnly
 })
 
-// request interceptor original eliminado porque el token ya no va en el header
+// Envía el token en el header para mobile (iOS Safari bloquea cookies SameSite=None cross-origin)
+apiClient.interceptors.request.use((config) => {
+  const token = tokenService.getAccessToken()
+  if (token) config.headers.Authorization = `Bearer ${token}`
+  return config
+})
 
 apiClient.interceptors.response.use(
   (res) => res,
