@@ -5,7 +5,7 @@ import App from './App.tsx'
 import { API_BASE_URL } from './env'
 
 // Wake up the Render free-tier API as early as possible to minimize cold-start delay.
-fetch(`${API_BASE_URL}/libros/home`, { credentials: 'include' }).catch(() => {})
+fetch(`${API_BASE_URL}/health`).catch(() => {})
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

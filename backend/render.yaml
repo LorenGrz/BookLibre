@@ -33,7 +33,7 @@ services:
     repo: https://github.com/phm-unsam/backend-2026-grupo-12
     branch: feat/deploy
     dockerfilePath: ./Dockerfile
-    healthCheckPath: /api/libros/home?usuarioId=1
+    healthCheckPath: /api/health
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
