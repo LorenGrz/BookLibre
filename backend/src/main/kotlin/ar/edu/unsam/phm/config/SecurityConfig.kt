@@ -51,6 +51,7 @@ class SecurityConfig(
                 auth
                     .requestMatchers(HttpMethod.POST, "/api/login", "/api/register", "/api/auth/token", "/api/refresh", "/api/logout").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/health").permitAll()
+                    .requestMatchers(HttpMethod.HEAD, "/api/health").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/libros/home", "/api/libros/populares").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/libros/mas-clickeado").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/libros/mejor-calificados").permitAll()
