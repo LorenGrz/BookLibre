@@ -34,3 +34,8 @@ spring:
 cookie:
   same-site: "None"
   secure: true
+
+# Sin default: en produccion la app NO arranca si JWT_SECRET no esta seteado
+# (evita firmar tokens con el placeholder publico de application.yml).
+jwt:
+  secret: ${JWT_SECRET}

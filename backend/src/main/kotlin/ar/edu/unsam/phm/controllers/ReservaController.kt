@@ -7,6 +7,7 @@ import ar.edu.unsam.phm.dtos.ReservaDTO
 import ar.edu.unsam.phm.dtos.UsuarioConMasReservasDTO
 import ar.edu.unsam.phm.dtos.UsuarioReservasDevueltasDTO
 import ar.edu.unsam.phm.services.ReservaService
+import org.springframework.security.core.Authentication
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 
@@ -16,15 +17,15 @@ class ReservaController(val reservaService: ReservaService) {
     @Transactional(readOnly = true)
     @GetMapping
     fun getReservas(
-        @RequestParam usuarioId: Int,
         @RequestParam tipo: TipoReserva,
         @RequestParam(name = "page", defaultValue = "0") page: Int,
         @RequestParam(name = "size", defaultValue = "10") size: Int,
-    ): PagedResponse<ReservaDTO> = reservaService.obtenerReservas(usuarioId, tipo, page, size)
+        auth: Authentication,
+    ): PagedResponse<ReservaDTO> = reservaService.obtenerReservas(auth.name, tipo, page, size)
 
     @PostMapping("/crear")
-    fun crearReserva(@RequestBody body: CrearReservaDTO) {
-        reservaService.crearReserva(body)
+    fun crearReserva(@RequestBody body: CrearReservaDTO, auth: Authentication) {
+        reservaService.crearReserva(body, auth.name)
     }
 
     @GetMapping("/usuarios-con-devoluciones")

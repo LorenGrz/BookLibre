@@ -81,10 +81,10 @@ class ReservaServiceSpringSpec : DescribeSpec({
             val hasta = LocalDateTime.now().plusDays(10)
             val dto = CrearReservaDTO(10, 1, desde, hasta)
             every { libroRepository.getByIdCompleto(10) } returns libro
-            every { usuarioJpa.findById(1) } returns Optional.of(user)
+            every { usuarioJpa.findByEmail("juan@example.com") } returns user
             every { reservaJpa.estaReservadoEnPeriodo(10, desde, hasta) } returns true
 
-            shouldThrow<BusinessException> { service.crearReserva(dto) }
+            shouldThrow<BusinessException> { service.crearReserva(dto, "juan@example.com") }
 
             verify(exactly = 0) { reservaJpa.save(any()) }
         }
@@ -95,7 +95,7 @@ class ReservaServiceSpringSpec : DescribeSpec({
             val dto = CrearReservaDTO(999, 1, desde, hasta)
             every { libroRepository.getByIdCompleto(999) } throws NotFoundException("Libro.kt 999 no encontrado")
 
-            shouldThrow<NotFoundException> { service.crearReserva(dto) }
+            shouldThrow<NotFoundException> { service.crearReserva(dto, "juan@example.com") }
         }
 
         it("crearReserva lanza NotFoundException si el usuario no existe") {
@@ -104,9 +104,9 @@ class ReservaServiceSpringSpec : DescribeSpec({
             val hasta = LocalDateTime.now().plusDays(10)
             val dto = CrearReservaDTO(10, 999, desde, hasta)
             every { libroRepository.getByIdCompleto(10) } returns libro
-            every { usuarioJpa.findById(999) } returns Optional.empty()
+            every { usuarioJpa.findByEmail("ghost@example.com") } returns null
 
-            shouldThrow<NotFoundException> { service.crearReserva(dto) }
+            shouldThrow<NotFoundException> { service.crearReserva(dto, "ghost@example.com") }
         }
 
         it("crearReserva persiste usuario y reserva cuando todo es válido") {
@@ -117,14 +117,14 @@ class ReservaServiceSpringSpec : DescribeSpec({
             val dto = CrearReservaDTO(10, 1, desde, hasta)
             every { libroRepository.getByIdCompleto(10) } returns libro
             every { libroRepository.save(any()) } answers { firstArg() }
-            every { usuarioJpa.findById(1) } returns Optional.of(user)
+            every { usuarioJpa.findByEmail("juan@example.com") } returns user
             // duenio.id = 3 — el service lo busca en JPA al crear la reserva
             every { usuarioJpa.findById(3) } returns Optional.of(duenio)
             every { reservaJpa.estaReservadoEnPeriodo(10, desde, hasta) } returns false
             every { usuarioJpa.save(any()) } answers { firstArg() }
             every { reservaJpa.save(any()) } answers { firstArg<Reserva>().apply { id = 500 } }
 
-            val reserva = service.crearReserva(dto)
+            val reserva = service.crearReserva(dto, "juan@example.com")
 
             reserva.libroId shouldBe 10
             reserva.usuario.id shouldBe 1
@@ -133,8 +133,8 @@ class ReservaServiceSpringSpec : DescribeSpec({
         }
 
         it("obtenerReservas lanza NotFoundException si el usuario no existe") {
-            every { usuarioJpa.findById(99) } returns Optional.empty()
-            shouldThrow<NotFoundException> { service.obtenerReservas(99, TipoReserva.HECHAS) }
+            every { usuarioJpa.findByEmail("ghost@example.com") } returns null
+            shouldThrow<NotFoundException> { service.obtenerReservas("ghost@example.com", TipoReserva.HECHAS) }
         }
     }
 })

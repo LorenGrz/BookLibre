@@ -30,15 +30,16 @@ class JwtAuthFilter(
         response: HttpServletResponse,
         filterChain: FilterChain,
     ) {
-        // 1. Intentar obtener el token de la cookie HttpOnly
-        var token: String? = request.cookies?.find { it.name == "accessToken" }?.value
-
-        // 2. Si no hay cookie, intentar el header Authorization (para Swagger UI y retrocompatibilidad)
-        if (token == null) {
-            val authHeader = request.getHeader("Authorization")
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                token = authHeader.removePrefix("Bearer ")
-            }
+        // SECURITY: sólo se autentica por el header Authorization: Bearer.
+        // No se acepta la cookie como autenticador — un atacante cross-site puede
+        // forzar el envío de la cookie (SameSite=None) pero no puede setear este
+        // header (lo bloquean el preflight CORS y la allowlist de orígenes). Eso
+        // elimina el vector CSRF sin necesidad de tokens CSRF.
+        val authHeader = request.getHeader("Authorization")
+        val token: String? = if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            authHeader.removePrefix("Bearer ")
+        } else {
+            null
         }
 
         if (token == null) {
