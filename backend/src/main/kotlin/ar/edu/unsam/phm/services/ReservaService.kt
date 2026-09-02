@@ -32,8 +32,10 @@ class ReservaService(
 
     private val locks = java.util.concurrent.ConcurrentHashMap<Int, Any>()
 
-    fun obtenerReservas(usuarioId: Int, tipo: TipoReserva, pagina: Int = 0, tamanio: Int = 10): PagedResponse<ReservaDTO> {
-        usuarioJpa.findById(usuarioId).orElseThrow { NotFoundException("Usuario $usuarioId no encontrado") }
+    fun obtenerReservas(usuarioEmail: String, tipo: TipoReserva, pagina: Int = 0, tamanio: Int = 10): PagedResponse<ReservaDTO> {
+        // SECURITY: el usuario objetivo es el principal autenticado, nunca un parámetro del request.
+        val usuarioId = usuarioJpa.findByEmail(usuarioEmail)?.id
+            ?: throw NotFoundException("Usuario $usuarioEmail no encontrado")
         val paginacion = PageRequest.of(pagina, tamanio, Sort.by(Sort.Direction.DESC, "fechaDesde"))
         val paginaReservas = when (tipo) {
             TipoReserva.HECHAS    -> reservaJpa.findByUsuarioId(usuarioId, paginacion)
@@ -117,7 +119,7 @@ class ReservaService(
         }
 
     @Transactional
-    fun crearReserva(dto: CrearReservaDTO): Reserva {
+    fun crearReserva(dto: CrearReservaDTO, solicitanteEmail: String): Reserva {
         if (dto.fechaDesde.isBefore(LocalDateTime.now())) {
             throw BusinessException("La fecha de inicio no puede ser en el pasado")
         }
@@ -125,11 +127,12 @@ class ReservaService(
         synchronized(lock) {
             val libro = libroRepository.getByIdCompleto(dto.libroId)
                 ?: throw NotFoundException("Libro ${dto.libroId} no encontrado")
-            val solicitante = usuarioJpa.findById(dto.usuarioId)
-                .orElseThrow { NotFoundException("Usuario ${dto.usuarioId} no encontrado") }
+            // SECURITY: el solicitante es el principal autenticado, nunca un id del body.
+            val solicitante = usuarioJpa.findByEmail(solicitanteEmail)
+                ?: throw NotFoundException("Usuario $solicitanteEmail no encontrado")
 
             // Un usuario no puede reservar un libro si ya tiene una reserva activa sobre él
-            if (reservaJpa.existsByLibroIdAndUsuarioIdAndFechaHastaAfter(dto.libroId, dto.usuarioId, LocalDateTime.now())) {
+            if (reservaJpa.existsByLibroIdAndUsuarioIdAndFechaHastaAfter(dto.libroId, solicitante.id, LocalDateTime.now())) {
                 throw BusinessException("Ya tenés una reserva activa para este libro")
             }
 

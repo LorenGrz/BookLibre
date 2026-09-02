@@ -25,8 +25,14 @@ class UsuarioController(
 ) {
 
     @GetMapping("/{id}")
-    fun getUsuario(@PathVariable id: Int): UsuarioResponse =
-        usuarioService.obtenerUsuario(id).toResponse()
+    fun getUsuario(@PathVariable id: Int, auth: Authentication): UsuarioResponse {
+        val usuario = usuarioService.obtenerUsuario(id)
+        val isAdmin = auth.authorities.any { it.authority == "ROLE_ADMIN" }
+        if (!isAdmin && usuario.email != auth.name) {
+            throw ForbiddenException("No tenés permiso para ver este usuario")
+        }
+        return usuario.toResponse()
+    }
 
     @PutMapping("/{id}")
     fun actualizarUsuario(

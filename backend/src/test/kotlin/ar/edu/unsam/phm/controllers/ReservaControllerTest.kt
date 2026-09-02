@@ -94,6 +94,10 @@ class ReservaControllerTest(
         bibliokarmas = karma
     }
 
+    // addFilters = false: inyectamos el principal a mano, como en LibroControllerTest.
+    private val principal =
+        org.springframework.security.authentication.UsernamePasswordAuthenticationToken("user", "", emptyList())
+
     @Test
     @DisplayName("cuando se consultan las reservas de un usuario existente, devuelve 200 con la lista de DTOs")
     fun getReservas_ok() {
@@ -108,38 +112,38 @@ class ReservaControllerTest(
 
         val reservasDTO = reservas.map { it.toDTO(libro = if (it.libroId == 1) libro1 else libro2, estaDisponible = true, yaCalificadoPorUsuario = false) }
 
-        whenever(reservaService.obtenerReservas(1, TipoReserva.HECHAS, 0, 10)).thenReturn(PagedResponse(reservasDTO, 0, 1))
+        whenever(reservaService.obtenerReservas("user", TipoReserva.HECHAS, 0, 10)).thenReturn(PagedResponse(reservasDTO, 0, 1))
 
-        mockMvc.perform(get("/api/reservas?usuarioId=1&tipo=HECHAS"))
+        mockMvc.perform(get("/api/reservas?tipo=HECHAS").principal(principal))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.content[0].id").value(1))
             .andExpect(jsonPath("$.content[1].id").value(2))
 
-        verify(reservaService).obtenerReservas(1, TipoReserva.HECHAS, 0, 10)
+        verify(reservaService).obtenerReservas("user", TipoReserva.HECHAS, 0, 10)
     }
 
     @Test
     @DisplayName("cuando el usuario no tiene reservas, devuelve 200 con lista vacía")
     fun getReservas_listaVacia() {
-        whenever(reservaService.obtenerReservas(99, TipoReserva.HECHAS, 0, 10)).thenReturn(PagedResponse(emptyList(), 0, 0))
+        whenever(reservaService.obtenerReservas("user", TipoReserva.HECHAS, 0, 10)).thenReturn(PagedResponse(emptyList(), 0, 0))
 
-        mockMvc.perform(get("/api/reservas?usuarioId=99&tipo=HECHAS"))
+        mockMvc.perform(get("/api/reservas?tipo=HECHAS").principal(principal))
             .andExpect(status().isOk)
             .andExpect(content().json("{\"content\":[],\"page\":0,\"totalPages\":0,\"totalElements\":0}"))
 
-        verify(reservaService).obtenerReservas(99, TipoReserva.HECHAS, 0, 10)
+        verify(reservaService).obtenerReservas("user", TipoReserva.HECHAS, 0, 10)
     }
 
     @Test
     @DisplayName("cuando el usuario no existe, devuelve 404 Not Found")
     fun getReservas_usuarioInexistente() {
-        whenever(reservaService.obtenerReservas(999, TipoReserva.HECHAS, 0, 10)).thenThrow(NotFoundException("Usuario no encontrado"))
+        whenever(reservaService.obtenerReservas("user", TipoReserva.HECHAS, 0, 10)).thenThrow(NotFoundException("Usuario no encontrado"))
 
-        mockMvc.perform(get("/api/reservas?usuarioId=999&tipo=HECHAS"))
+        mockMvc.perform(get("/api/reservas?tipo=HECHAS").principal(principal))
             .andExpect(status().isNotFound)
 
-        verify(reservaService).obtenerReservas(999, TipoReserva.HECHAS, 0, 10)
+        verify(reservaService).obtenerReservas("user", TipoReserva.HECHAS, 0, 10)
     }
 
     @Test
@@ -152,14 +156,15 @@ class ReservaControllerTest(
             fechaHasta = LocalDate.of(2026, 5, 10).atTime(23, 59, 59),
         )
 
-        whenever(reservaService.crearReserva(any())).thenReturn(mockk())
+        whenever(reservaService.crearReserva(any(), any())).thenReturn(mockk())
 
         mockMvc.perform(
             post("/api/reservas/crear")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(dto)),
+                .content(objectMapper.writeValueAsString(dto))
+                .principal(principal),
         ).andExpect(status().isOk)
 
-        verify(reservaService).crearReserva(any())
+        verify(reservaService).crearReserva(any(), any())
     }
 }
