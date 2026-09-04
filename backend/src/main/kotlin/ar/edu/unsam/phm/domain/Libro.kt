@@ -29,6 +29,8 @@ data class LibroFiltros(
         ): LibroFiltros {
             if (paginasMin != null && paginasMax != null && paginasMin >= paginasMax)
                 throw BusinessException("El mínimo de páginas debe ser menor al máximo")
+            if (paginasMin < 0 || paginasMax < 0)
+                throw BusinessException("El numero de paginas no puede ser menor a 0")
             return LibroFiltros(
                 query = query,
                 generos = if (generos.isBlank()) emptyList() else generos.split(","),
